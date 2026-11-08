@@ -12,7 +12,8 @@ const english = {
   navAbout: 'About & Experience',
   navExpertise: 'Advisory Services',
   navWork: 'Selected Experience',
-  navJournal: 'Insights',
+  navProjects: 'Projects',
+  navJournal: 'Blog',
   navContact: 'Contact',
   heroRole: 'Independent Business Strategy & Operations Advisor',
   heroTitleFirst: 'Better commercial decisions.',
@@ -20,7 +21,6 @@ const english = {
   heroDescription: 'I help leadership teams improve profitability, simplify business operations, and turn strategy into practical action, drawing on international commercial experience, analytical thinking, and a background in technology.',
   heroCta: 'Discuss a business challenge',
   heroSecondary: 'Explore my experience',
-  heroImage: 'Portrait of Atiyeh Kiaee',
   credibilityLabel: 'Atiyeh Kiaee’s background at a glance',
   credibilityAbout: 'About Atiyeh Kiaee',
   credibilityTrade: '5+ years in international energy trading and operations',
@@ -96,7 +96,7 @@ const english = {
   step4Body: 'We define the action plan, measures, and review schedule for the selected option. My involvement in execution depends on the scope of the work.',
   journalLabel: 'Articles and work experience',
   journalIntro: 'Practical writing on commercial decisions, operations, and where technology can help, alongside examples from previous employment.',
-  allPosts: 'Explore all insights',
+  allPosts: 'All posts',
   backHome: 'Back to home',
   homePage: 'Home',
   breadcrumb: 'Breadcrumb',
@@ -105,7 +105,7 @@ const english = {
   filterAll: 'All',
   filterCases: 'Experience',
   filterArticles: 'Articles',
-  journalSearch: 'Search insights',
+  journalSearch: 'Search the blog',
   journalLoading: 'Loading posts…',
   journalRetry: 'Try again',
   journalMore: 'More posts',
@@ -127,10 +127,38 @@ const english = {
   publishPost: 'Publish post',
   saveDraft: 'Save draft',
   archivePost: 'Archive',
-  missingPost: 'This insight could not be found.',
+  missingPost: 'This post could not be found.',
   contactTitle: 'Let’s discuss your business challenge',
   contactIntro: 'If you’re facing a commercial decision or an operational challenge, write a few lines about the context and what you want to achieve. I also welcome conversations about relevant roles.',
-  emailCta: 'Email Atiyeh Kiaee',
+  emailCta: 'Email Atiyeh Kiaee directly',
+  contactFormTitle: 'Send a message',
+  contactName: 'Name',
+  contactEmail: 'Email',
+  contactSubject: 'Subject (optional)',
+  contactMessage: 'Message',
+  contactSubmit: 'Send message',
+  contactSetup: 'To activate the form, verify the recipient email in Formspree, create a form, and provide its public endpoint.',
+  projectsIntro: 'Here I share apps and tools I’ve built to solve specific problems.',
+  projectsPending: 'Projects will appear here as their details become available.',
+  reviewLabel: 'Preview',
+  reviewNote: 'This version shows the project template for review.',
+  projectCoverPending: 'Project cover goes here',
+  projectTemplateLabel: 'Project template',
+  projectTitle: 'App built with AI assistance',
+  projectSummaryPending: 'A one-line description of the app and the problem it solves goes here.',
+  projectView: 'View project',
+  projectBack: 'Back to projects',
+  projectDemoTitle: 'Demo video',
+  projectDemoPending: 'The demo will be playable here once the video is available.',
+  projectProblemTitle: 'Problem',
+  projectProblemPending: 'Describe the problem, the intended users, and why the app was built.',
+  projectRoleTitle: 'My role',
+  projectRolePending: 'Describe my responsibilities in designing, building, or testing the app.',
+  projectAiTitle: 'How I used AI',
+  projectAiPending: 'Explain where AI helped and how it was used.',
+  projectOutputTitle: 'App output',
+  projectOutputPending: 'Describe the inputs, outputs, and how someone uses the result.',
+  projectTry: 'Try the app',
   backTop: 'Back to top',
 };
 
@@ -148,8 +176,9 @@ const metaDescription = document.querySelector('meta[name="description"]');
 const originalTitle = document.title;
 const originalDescription = metaDescription?.content;
 const localizedTitle = {
-  journal: 'Insights | Atiyeh Kiaee',
-  missing: 'Insight not found | Atiyeh Kiaee',
+  journal: 'Blog | Atiyeh Kiaee',
+  missing: 'Post not found | Atiyeh Kiaee',
+  project: 'Project template | Atiyeh Kiaee',
 };
 const article = document.getElementById('post-article');
 const persianArticle = article?.cloneNode(true);
@@ -171,6 +200,98 @@ if (article) {
   });
 }
 
+const contactForm = document.getElementById('contact-form');
+const contactStatus = document.getElementById('contact-status');
+const contactEndpoint = contactForm?.getAttribute('action') ?? '';
+const contactReady = /^https:\/\/formspree\.io\/f\/[a-zA-Z0-9]+$/.test(contactEndpoint);
+const contactMessages = {
+  fa: {
+    pending: 'فرم در انتظار فعال‌سازی است. برای تماس از پیوند ایمیل مستقیم استفاده کنید.',
+    ready: 'نام، ایمیل و پیام الزامی‌اند.',
+    sending: 'در حال ارسال پیام…',
+    success: 'پیام شما ارسال شد. ممنون از اینکه نوشتید.',
+    error: 'ارسال پیام انجام نشد. دوباره تلاش کنید یا از پیوند ایمیل مستقیم استفاده کنید.',
+    limited: 'تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید یا مستقیم ایمیل بزنید.',
+    invalid: 'نام و متن پیام را وارد کنید.',
+  },
+  en: {
+    pending: 'This form is awaiting activation. Use the direct email link to get in touch.',
+    ready: 'Name, email, and message are required.',
+    sending: 'Sending your message…',
+    success: 'Your message was sent. Thank you for getting in touch.',
+    error: 'Your message could not be sent. Try again or use the direct email link.',
+    limited: 'Too many requests. Try again shortly or use the direct email link.',
+    invalid: 'Enter your name and a message.',
+  },
+};
+function showContactStatus(state) {
+  if (!contactStatus) return;
+  contactStatus.dataset.state = state;
+  const language = document.documentElement.lang === 'en' ? 'en' : 'fa';
+  contactStatus.textContent = contactMessages[language][state];
+}
+
+if (contactForm) {
+  const fields = contactForm.querySelector('fieldset');
+  const submit = contactForm.querySelector('button[type="submit"]');
+  const setup = contactForm.querySelector('[data-contact-setup]');
+  if (setup) setup.hidden = contactReady;
+  fields.disabled = !contactReady;
+  showContactStatus(contactReady ? 'ready' : 'pending');
+  contactForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!contactReady || submit.disabled) return;
+    const values = new FormData(contactForm);
+    const name = String(values.get('name') ?? '').trim();
+    const message = String(values.get('message') ?? '').trim();
+    if (!name || !message) {
+      showContactStatus('invalid');
+      contactForm.elements.namedItem(name ? 'message' : 'name').focus();
+      return;
+    }
+    values.set('name', name);
+    values.set('message', message);
+    fields.disabled = true;
+    submit.disabled = true;
+    showContactStatus('sending');
+    try {
+      const response = await fetch(contactEndpoint, {
+        method: 'POST', headers: { Accept: 'application/json' }, body: values,
+        credentials: 'omit', signal: AbortSignal.timeout(15000),
+      });
+      if (response.status === 429) {
+        showContactStatus('limited');
+        return;
+      }
+      const result = await response.json();
+      if (!response.ok || result.ok !== true) throw new Error('Form submission was rejected');
+      contactForm.reset();
+      showContactStatus('success');
+    } catch {
+      showContactStatus('error');
+    } finally {
+      fields.disabled = false;
+      submit.disabled = false;
+    }
+  });
+}
+
+const projectVideo = document.querySelector('[data-project-video][src]');
+if (projectVideo?.getAttribute('src')) {
+  projectVideo.hidden = false;
+  document.querySelector('[data-demo-placeholder]').hidden = true;
+}
+const projectAppLink = document.querySelector('[data-project-app-link]');
+if (projectAppLink?.dataset.publicUrl) {
+  try {
+    const url = new URL(projectAppLink.dataset.publicUrl);
+    if (url.protocol === 'https:' || url.protocol === 'http:') {
+      projectAppLink.href = url.href;
+      projectAppLink.hidden = false;
+    }
+  } catch { /* Keep the button hidden until a valid public URL is provided. */ }
+}
+
 function setLanguage(language) {
   const isEnglish = language === 'en';
   document.documentElement.lang = language;
@@ -179,11 +300,12 @@ function setLanguage(language) {
   for (const {element, property, fa, en} of translatable) element[property] = isEnglish ? (en ?? fa) : fa;
   for (const button of languageButtons) button.setAttribute('aria-pressed', String(button.dataset.lang === language));
   if (article) setArticleLanguage(isEnglish);
+  if (contactStatus) showContactStatus(contactStatus.dataset.state);
   const pageType = page?.page;
   const englishTitle = article ? page.titleEn + ' | Atiyeh Kiaee' : localizedTitle[pageType] ?? 'Atiyeh Kiaee | Business Strategy & Operations Advisor';
   document.title = isEnglish ? englishTitle : originalTitle;
   if (metaDescription) metaDescription.content = isEnglish
-    ? (article ? page.descriptionEn : pageType === 'journal' ? english.journalIntro : english.heroDescription)
+    ? (article ? page.descriptionEn : pageType === 'journal' ? english.journalIntro : pageType === 'project' ? english.projectSummaryPending : english.heroDescription)
     : originalDescription;
   try { localStorage.setItem('atie-language', language); } catch { /* The preference is optional. */ }
   document.dispatchEvent(new CustomEvent('atie-language-change'));
@@ -210,9 +332,9 @@ document.addEventListener('keydown', event => {
     menuToggle.focus();
   }
 });
-window.matchMedia('(min-width: 921px)').addEventListener('change', event => {
+window.matchMedia('(min-width: 981px)').addEventListener('change', event => {
   if (event.matches) setMenu(false);
 });
 if (page?.page === 'journal' || page?.page === 'post') {
-  for (const link of document.querySelectorAll('header a[href="/journal"]')) link.setAttribute('aria-current', 'page');
+  for (const link of document.querySelectorAll('header a[data-i18n="navJournal"]')) link.setAttribute('aria-current', 'page');
 }
