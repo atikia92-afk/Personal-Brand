@@ -171,7 +171,7 @@ img { display: block; max-width: 100%; }
 .contact-form .button:disabled { cursor: default; }
 .contact-status { color: var(--muted); font-size: .88rem; margin-bottom: 12px; }
 .contact-setup { border-inline-start: 2px solid var(--control-line); padding-inline-start: 10px; }
-.contact-status:is([data-state=error], [data-state=limited], [data-state=invalid], [data-state=success]) { color: var(--accent-dark); font-weight: 700; }
+.contact-status:is([data-state=error], [data-state=limited], [data-state=invalid], [data-state=invalidReply], [data-state=success], [data-state=activation]) { color: var(--accent-dark); font-weight: 700; }
 .site-footer { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 700; }
 
 .projects-empty, .project-card-copy > p:not(.eyebrow), .project-details-grid p { color: var(--muted); }

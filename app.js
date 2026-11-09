@@ -133,11 +133,10 @@ const english = {
   emailCta: 'Email Atiyeh Kiaee directly',
   contactFormTitle: 'Send a message',
   contactName: 'Name',
-  contactEmail: 'Email',
+  contactReply: 'Email or phone number',
   contactSubject: 'Subject (optional)',
   contactMessage: 'Message',
-  contactSubmit: 'Send message',
-  contactSetup: 'To activate the form, verify the recipient email in Formspree, create a form, and provide its public endpoint.',
+  contactSetup: 'To enable online delivery, open the activation link in the email FormSubmit sent to the contact address.',
   projectsIntro: 'Here I share apps and tools I’ve built to solve specific problems.',
   projectsPending: 'Projects will appear here as their details become available.',
   reviewLabel: 'Preview',
@@ -202,61 +201,107 @@ if (article) {
 
 const contactForm = document.getElementById('contact-form');
 const contactStatus = document.getElementById('contact-status');
+const contactSubmit = contactForm?.querySelector('button[type="submit"]');
 const contactEndpoint = contactForm?.getAttribute('action') ?? '';
-const contactReady = /^https:\/\/formspree\.io\/f\/[a-zA-Z0-9]+$/.test(contactEndpoint);
+const contactRecipient = 'ati.kia92@gmail.com';
+const contactReady = contactForm?.dataset.delivery === 'formsubmit'
+  && contactEndpoint === 'https://formsubmit.co/ajax/' + contactRecipient;
 const contactMessages = {
   fa: {
-    pending: 'فرم در انتظار فعال‌سازی است. برای تماس از پیوند ایمیل مستقیم استفاده کنید.',
-    ready: 'نام، ایمیل و پیام الزامی‌اند.',
+    fallback: 'تا فعال شدن ارسال آنلاین، دکمهٔ فرم پیش‌نویس پیام را در برنامهٔ ایمیل باز می‌کند.',
+    draft: 'پیش‌نویس آماده شد. برای فرستادن پیام، دکمهٔ ارسال را در برنامهٔ ایمیل بزنید.',
+    ready: 'نام، یکی از دو راه تماس و متن پیام الزامی‌اند.',
     sending: 'در حال ارسال پیام…',
     success: 'پیام شما ارسال شد. ممنون از اینکه نوشتید.',
     error: 'ارسال پیام انجام نشد. دوباره تلاش کنید یا از پیوند ایمیل مستقیم استفاده کنید.',
     limited: 'تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید یا مستقیم ایمیل بزنید.',
     invalid: 'نام و متن پیام را وارد کنید.',
+    invalidReply: 'یک ایمیل یا شمارهٔ تلفن معتبر وارد کنید.',
+    activation: 'ارسال آنلاین هنوز فعال نشده است. برای تماس از پیوند ایمیل مستقیم استفاده کنید.',
+    openEmail: 'آماده کردن ایمیل',
+    send: 'ارسال پیام',
+    defaultSubject: 'پیام از سایت عطیه کیایی',
   },
   en: {
-    pending: 'This form is awaiting activation. Use the direct email link to get in touch.',
-    ready: 'Name, email, and message are required.',
+    fallback: 'Until online delivery is active, the form opens a draft in your email app.',
+    draft: 'Your draft is ready. Use Send in your email app to deliver the message.',
+    ready: 'Name, an email or phone number, and a message are required.',
     sending: 'Sending your message…',
     success: 'Your message was sent. Thank you for getting in touch.',
     error: 'Your message could not be sent. Try again or use the direct email link.',
     limited: 'Too many requests. Try again shortly or use the direct email link.',
     invalid: 'Enter your name and a message.',
+    invalidReply: 'Enter a valid email address or phone number.',
+    activation: 'Online delivery is awaiting activation. Please use the direct email link.',
+    openEmail: 'Prepare email',
+    send: 'Send message',
+    defaultSubject: 'Message from Atiyeh Kiaee’s website',
   },
 };
+const currentContactCopy = () => contactMessages[document.documentElement.lang === 'en' ? 'en' : 'fa'];
 function showContactStatus(state) {
   if (!contactStatus) return;
   contactStatus.dataset.state = state;
-  const language = document.documentElement.lang === 'en' ? 'en' : 'fa';
-  contactStatus.textContent = contactMessages[language][state];
+  const copy = currentContactCopy();
+  contactStatus.textContent = copy[state];
+  contactSubmit.textContent = contactReady ? copy.send : copy.openEmail;
+}
+
+function parseReply(value) {
+  if (/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/u.test(value)) return { field: 'email', value };
+  const phone = value.normalize('NFKC')
+    .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - 0x6f0))
+    .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0) - 0x660))
+    .replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '')
+    .trim();
+  if (!/^\+?[0-9\s().\p{Dash_Punctuation}]+$/u.test(phone)) return null;
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 7 || digits.length > 15) return null;
+  return { field: 'phone', value: (phone.startsWith('+') ? '+' : '') + digits };
 }
 
 if (contactForm) {
   const fields = contactForm.querySelector('fieldset');
-  const submit = contactForm.querySelector('button[type="submit"]');
   const setup = contactForm.querySelector('[data-contact-setup]');
   if (setup) setup.hidden = contactReady;
-  fields.disabled = !contactReady;
-  showContactStatus(contactReady ? 'ready' : 'pending');
+  fields.disabled = false;
+  showContactStatus(contactReady ? 'ready' : 'fallback');
   contactForm.addEventListener('submit', async event => {
     event.preventDefault();
-    if (!contactReady || submit.disabled) return;
+    if (contactSubmit.disabled) return;
     const values = new FormData(contactForm);
     const name = String(values.get('name') ?? '').trim();
     const message = String(values.get('message') ?? '').trim();
+    const subject = String(values.get('subject') ?? '').trim().replace(/[\r\n]+/g, ' ');
     if (!name || !message) {
       showContactStatus('invalid');
       contactForm.elements.namedItem(name ? 'message' : 'name').focus();
       return;
     }
-    values.set('name', name);
-    values.set('message', message);
+    const reply = parseReply(String(values.get('reply') ?? '').trim());
+    if (!reply) {
+      showContactStatus('invalidReply');
+      contactForm.elements.namedItem('reply').focus();
+      return;
+    }
+    const subjectLine = subject || currentContactCopy().defaultSubject;
+    if (!contactReady) {
+      const body = `${name}\n${reply.value}\n\n${message}`;
+      showContactStatus('draft');
+      window.location.href = `mailto:${contactRecipient}?subject=${encodeURIComponent(subjectLine)}&body=${encodeURIComponent(body)}`;
+      return;
+    }
+    const payload = new URLSearchParams({
+      name, [reply.field]: reply.value, message, _subject: subjectLine,
+      _url: window.location.origin + window.location.pathname,
+    });
+    if (subject) payload.set('subject', subject);
     fields.disabled = true;
-    submit.disabled = true;
+    contactSubmit.disabled = true;
     showContactStatus('sending');
     try {
       const response = await fetch(contactEndpoint, {
-        method: 'POST', headers: { Accept: 'application/json' }, body: values,
+        method: 'POST', headers: { Accept: 'application/json' }, body: payload,
         credentials: 'omit', signal: AbortSignal.timeout(15000),
       });
       if (response.status === 429) {
@@ -264,14 +309,18 @@ if (contactForm) {
         return;
       }
       const result = await response.json();
-      if (!response.ok || result.ok !== true) throw new Error('Form submission was rejected');
+      if (/needs activation|activate form|activation link/i.test(result?.message ?? '')) {
+        showContactStatus('activation');
+        return;
+      }
+      if (!response.ok || String(result?.success) !== 'true') throw new Error('Form submission was rejected');
       contactForm.reset();
       showContactStatus('success');
     } catch {
       showContactStatus('error');
     } finally {
       fields.disabled = false;
-      submit.disabled = false;
+      contactSubmit.disabled = false;
     }
   });
 }
