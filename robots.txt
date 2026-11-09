@@ -1,4 +1,2 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://atikia92-afk.github.io/Personal-Brand/sitemap.xml
