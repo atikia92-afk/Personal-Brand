@@ -14,10 +14,11 @@ const english = {
   navWork: 'Selected Experience',
   navProjects: 'Projects',
   navJournal: 'Blog',
+  blogHeading: 'Strategy and operations blog',
   navContact: 'Contact',
   heroRole: 'Independent Business Strategy & Operations Advisor',
-  heroTitleFirst: 'Better commercial decisions.',
-  heroTitleSecond: 'Stronger operations.',
+  heroTitleFirst: 'Business strategy advisory',
+  heroTitleSecond: 'for stronger operations and margins',
   heroDescription: 'I help leadership teams improve profitability, simplify business operations, and turn strategy into practical action, drawing on international commercial experience, analytical thinking, and a background in technology.',
   heroCta: 'Discuss a business challenge',
   heroSecondary: 'Explore my experience',
@@ -35,22 +36,22 @@ const english = {
   service1When: 'Profitability is hard to see across routes, deals, and the costs that erode margin.',
   service1Examine: 'Pricing economics, P&L, margins, operating cost drivers, and profitability by transaction or route.',
   service1Outputs: 'A map of profit drivers, a list of opportunities, decision dashboard requirements, and recommendations.',
-  service1Cta: 'Discuss profitability',
+  service1Cta: 'Explore profitability advisory',
   service2Title: 'Business Operations & Process Improvement',
   service2When: 'Handoffs between teams create delays or errors, and ownership is unclear.',
   service2Examine: 'Process bottlenecks, handoffs, ownership, reporting, and coordination across functions.',
   service2Outputs: 'A current-state map, priority pain points, proposed metrics and owners, and a 90-day action roadmap.',
-  service2Cta: 'Discuss process improvement',
+  service2Cta: 'Explore process improvement advisory',
   service3Title: 'Business Strategy & Execution Support',
   service3When: 'Growth or pricing decisions need better financial visibility, or agreed priorities are slow to move.',
   service3Examine: 'Commercial priorities, growth options, decision criteria, and how management follows up.',
   service3Outputs: 'Options analysis, prioritized actions, implementation milestones, and a schedule for review.',
-  service3Cta: 'Discuss strategy and execution',
+  service3Cta: 'Explore business strategy advisory',
   service4Title: 'AI Opportunity & Process Readiness Assessment',
   service4When: 'Teams are interested in automation and need a defined problem, a business case, or a process readiness check.',
   service4Examine: 'Use-case value, data quality, process readiness, feasibility, risk, and human oversight.',
   service4Outputs: 'A use-case shortlist and decision criteria for starting or stopping a limited pilot.',
-  service4Cta: 'Discuss process readiness',
+  service4Cta: 'Explore AI readiness assessment',
   experienceLabel: 'Commercial and operational background',
   experienceIntro: 'These examples reflect previous employment at Max Energy and inform my advisory approach.',
   work1Context: 'International energy trading · 2020–2024',
@@ -166,8 +167,9 @@ const translatable = [
   ['[data-placeholder]', 'placeholder', 'placeholder'],
   ['[data-aria]', 'aria', 'ariaLabel'],
   ['[data-alt]', 'alt', 'alt'],
+  ['[data-en]', 'en', 'textContent'],
 ].flatMap(([selector, key, property]) => Array.from(document.querySelectorAll(selector), element => ({
-  element, property, fa: element[property], en: english[element.dataset[key]],
+  element, property, fa: element[property], en: key === 'en' ? element.dataset.en : english[element.dataset[key]],
 })));
 const languageButtons = document.querySelectorAll('[data-lang]');
 const page = document.querySelector('[data-page]')?.dataset;
@@ -175,7 +177,7 @@ const metaDescription = document.querySelector('meta[name="description"]');
 const originalTitle = document.title;
 const originalDescription = metaDescription?.content;
 const localizedTitle = {
-  journal: 'Blog | Atiyeh Kiaee',
+  journal: 'Strategy and Operations Blog | Atiyeh Kiaee',
   missing: 'Post not found | Atiyeh Kiaee',
   project: 'Project template | Atiyeh Kiaee',
 };
@@ -351,10 +353,10 @@ function setLanguage(language) {
   if (article) setArticleLanguage(isEnglish);
   if (contactStatus) showContactStatus(contactStatus.dataset.state);
   const pageType = page?.page;
-  const englishTitle = article ? page.titleEn + ' | Atiyeh Kiaee' : localizedTitle[pageType] ?? 'Atiyeh Kiaee | Business Strategy & Operations Advisor';
+  const englishTitle = page?.titleEn ? page.titleEn + ' | Atiyeh Kiaee' : localizedTitle[pageType] ?? 'Atiyeh Kiaee | Business Strategy & Operations Advisor';
   document.title = isEnglish ? englishTitle : originalTitle;
   if (metaDescription) metaDescription.content = isEnglish
-    ? (article ? page.descriptionEn : pageType === 'journal' ? english.journalIntro : pageType === 'project' ? english.projectSummaryPending : english.heroDescription)
+    ? (page?.descriptionEn ?? (pageType === 'journal' ? english.journalIntro : pageType === 'project' ? english.projectSummaryPending : english.heroDescription))
     : originalDescription;
   try { localStorage.setItem('atie-language', language); } catch { /* The preference is optional. */ }
   document.dispatchEvent(new CustomEvent('atie-language-change'));
